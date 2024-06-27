@@ -1,81 +1,107 @@
+
 import tkinter
 from tkinter import ttk
 from tkinter import messagebox
-def save_data():
-    fname=fnameentry.get()
-    lname=lnameentry.get()
-    if fname!='' and lname!=' ':
-        title=titlecombo.get()
-        age=agespinbox.get()
-        nationality=nationcombo.get()
-        registrated=reg_status.get()
-    #for show in the data if person is registreted or no
-        if registrated=='1':
-            registered='Registered'
-        else:
-            registered= 'Not registered'
+import matplotlib.pyplot as plt
 
-
-        print('First Name:',fname,'\tLAst NAme:',lname)
-        print('Title:',title,'\tAge',age,'\tNationality:',nationality)
-        print(registrated)
-        with open('student.txt','a') as fwrite:
-            fwrite.write(fname+' '+title+' '+str(age)+' '+nationality+'\n'+' '+registered+'\n')
-        print('saved')
+def person_data():
+    global data
+    name=fnameentry.get()
+    age=ageentry.get()
+    weight=weightspinbox.get()
+    height=heightspinbox.get()
+    BMI=float(weight)/(float(height)**2)
+    if BMI>=25:
+        data='overweight'
+        messagebox.showwarning('BMI','Take care! you are overweight')
+    elif BMI<25:
+        data ='normal'
+        messagebox.showwarning('BMI', 'you BMI is Normal')
+    elif BMI>=30:
+        data='obese'
+        messagebox.showwarning('BMI','Attention! you are obese')
     else:
-        tkinter.messagebox.showwarning(title='Error: Missing data',message='First name and last name required to save data')
+        data='underweight'
+        messagebox.showwarning('BMI','Attention! you are underweight')
+data=''
+
+BMIfile = 'BMIdata.txt'
+def get_data():
+    global data
+    with open(BMIfile,'a') as f:
+        f.write(data+'\n')
+def show_data():
+    with open(BMIfile,'r') as fread:
+        read=fread.read()
+        messagebox.showwarning(read)
+def plot_data():
+    categories = {'underweight': 0, 'normal': 0, 'overweight': 0, 'obese': 0}
+
+    try:
+        with open(BMIfile, 'r') as fread:
+            for line in fread:
+                category = line.strip().split(',')[-1]
+                if category in categories:
+                    categories[category] += 1
+
+        labels = categories.keys()
+        sizes = categories.values()
+
+        plt.figure(figsize=(6, 6))
+        plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140)
+        plt.title('BMI Categories Distribution')
+        plt.show()
+    except FileNotFoundError:
+        messagebox.showerror('File Error', 'BMI data file not found')
+
 
 window=tkinter.Tk()
-window.title('Data entry form')
-
+window.title('BMI calculator')
 frame=tkinter.Frame(window)
 frame.pack()
 
+
 userinfoframe=tkinter.LabelFrame(frame,text='User Information')
 userinfoframe.grid(row=0,column=0)
-framelabel=tkinter.Label(userinfoframe,text='First Name')
+framelabel=tkinter.Label(userinfoframe,text='Name')
 framelabel.grid(row=0,column=0)
 
 fnameentry=tkinter.Entry(userinfoframe)
 fnameentry.grid(row=0,column=1)
 
-lnamelabel=tkinter.Label(userinfoframe,text='Last Name')
-lnamelabel.grid(row=0,column=2)
-
-
-lnameentry=tkinter.Entry(userinfoframe)
-lnameentry.grid(row=0,column=3)
-#import ttk to do many choices
-titlelabel=tkinter.Label(userinfoframe,text='Tile')
-titlecombo=ttk.Combobox(userinfoframe,values=["","Mr","Mrs","Ms","Dr"])
-titlelabel.grid(row=1,column=0)
-titlecombo.grid(row=1,column=1)
-
 agelabel=tkinter.Label(userinfoframe,text='Age')
-agespinbox=tkinter.Spinbox(userinfoframe,from_=18,to=50)
-agelabel.grid(row=1,column=2)
-agespinbox.grid(row=1,column=3)
+agelabel.grid(row=0,column=2)
 
-countries=['Venezuela','Peru','Mexico','Panama','Chile']
-nationlabel=tkinter.Label(userinfoframe,text='Nationality')
-nationcombo=ttk.Combobox(userinfoframe,values=countries)
-nationlabel.grid(row=2,column=0)
-nationcombo.grid(row=2,column=1)
+ageentry=tkinter.Entry(userinfoframe)
+ageentry.grid(row=0,column=3)
 
-courseframe=tkinter.LabelFrame(frame,text='Registracion')
-courseframe.grid(row=1,column=0)
+heightlabel=tkinter.Label(userinfoframe,text='Height(m)')
+heightspinbox=tkinter.Spinbox(userinfoframe,from_=150,to=195)
+heightlabel.grid(row=1,column=0)
+heightspinbox.grid(row=1,column=1)
 
-registeredlabel=tkinter.Label(courseframe,text='Registreted')
-reg_status=tkinter.StringVar()# add after def for store the data
-regcheck=tkinter.Checkbutton(courseframe,text='Currently Registered',variable=reg_status)
 
-registeredlabel.grid(row=0,column=0)
-regcheck.grid(row=0,column=0)
+weightlabel=tkinter.Label(userinfoframe,text='Weight(Kg)')
+weightspinbox=tkinter.Spinbox(userinfoframe,from_=45,to=100)
+weightlabel.grid(row=1,column=2)
+weightspinbox.grid(row=1,column=3)
 
-savebtn=tkinter.Button(frame,text='Save',command=save_data)
-savebtn.grid(row=2,column=0)
+calcubtn=tkinter.Button(frame,text='BMI Calculation',command=person_data)
+calcubtn.grid(row=2,column=0)
 
-graphbtn=tkinter
+savebtn=tkinter.Button(frame,text='Save',command=get_data)
+savebtn.grid(row=3,column=0)
+
+label_result=tkinter.Label(frame,text="BMI:\ndata:")
+label_result.grid(row=3,column=2)
+
+graphbtn=tkinter.Button(frame,text='Graph',command=plot_data)
+graphbtn.grid(row=3,column=7)
+
+
+
+
+
 
 
 
@@ -86,4 +112,8 @@ graphbtn=tkinter
 
 
 window.mainloop()
+
+
+
+
 
